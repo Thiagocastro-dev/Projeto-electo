@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # O seu site (Nginx)
+  app-electo:
+    build:
+      context: .
+      args:
+        - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+        - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    container_name: site_projeto_electo
+    ports:
+      - "5173:80"
+    restart: unless-stopped
+    env_file:
+      - .env
+
+  # O Túnel Público da Cloudflare
+  cloudflare-tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: tunnel_cloudflare_electo
+    # Aponta o túnel diretamente para a porta 80 do Nginx
+    command: tunnel --url http://app-electo:80
+    restart: unless-stopped
+    depends_on:
+      - app-electo
